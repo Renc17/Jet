@@ -2,5 +2,6 @@
   "packages": ["apps/*", "libraries/*", "services/*"],
   "version": "independent",
   "npmClient": "yarn",
-  "stream": true
+  "stream": true,
+  "useWorkspaces": true
 }

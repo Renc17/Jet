@@ -25,3 +25,14 @@ export const EstablishmentSchema = z.object({
     )
     .optional(),
 });
+
+export const CategorySchema = z.object({
+  name: z.string().min(1, 'Required'),
+  dishes: z.array(
+    z.object({
+      name: z.string(),
+      price: z.number(),
+      description: z.string().optional(),
+    })
+  ),
+});

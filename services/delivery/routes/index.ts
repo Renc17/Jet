@@ -1,6 +1,9 @@
 import { Router } from 'express';
 import { RouteHandlers } from './handlers';
-import { validateCreateEstablishment } from './validators';
+import {
+  validateCreateEstablishment,
+  validateCreateMenuCategory,
+} from './validators';
 
 export class AppRouter {
   private static _instance: AppRouter;
@@ -24,6 +27,11 @@ export class AppRouter {
       '/establishment',
       validateCreateEstablishment,
       this.routeHandlers.createEstablishment
+    );
+    this.router.post(
+      '/:establishmentId/category',
+      validateCreateMenuCategory,
+      this.routeHandlers.createMenuCategory
     );
   }
 }

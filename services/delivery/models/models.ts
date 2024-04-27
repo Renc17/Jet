@@ -1,12 +1,7 @@
 import { Schema } from 'mongoose';
 
-// const operatingHours = new Schema({
-//   opening: { type: String, require: true },
-//   closing: { type: String, require: true },
-// });
-
 export const establishment = new Schema({
-  operating: { type: Boolean, require: true, default: false },
+  operating: { type: Boolean, required: true, default: false },
   name: { type: String, required: true },
   type: {
     type: String,
@@ -23,14 +18,13 @@ export const establishment = new Schema({
     postalCode: { type: String, required: true },
     googleMapsLink: { type: String, required: true },
   },
-  vatId: { type: String, require: true },
+  vatId: { type: String, required: true },
   tin: { type: String, required: true },
-  logo: { type: String, require: true },
-  //   openingHours: [operatingHours],
+  logo: { type: String, required: true },
   openingHours: [
     {
-      opening: { type: String, require: true },
-      closing: { type: String, require: true },
+      opening: { type: String, required: true },
+      closing: { type: String, required: true },
     },
   ],
 });
@@ -40,7 +34,7 @@ export const menu = new Schema({
   establishment_id: {
     type: Schema.Types.ObjectId,
     ref: 'Establishment',
-    require: true,
+    required: true,
   },
   tagline: String,
   status: {
@@ -54,23 +48,27 @@ export const menu = new Schema({
     {
       type: Schema.Types.ObjectId,
       ref: 'Category',
-      require: true,
+      required: true,
     },
   ],
 });
 menu.index({ operatingStartDate: 1, operatingEndDate: 1 }, { unique: true });
 
-const dish = new Schema({
-  name: { type: String, require: true },
-  price: { type: Number, require: true },
-  description: String,
-});
+interface Category {
+  establishmentId: Schema.Types.ObjectId;
+  name: string;
+  dishes: {
+    name: string;
+    price: number;
+    description?: string;
+  }[];
+}
 
-export const category = new Schema({
-  establishment_id: {
+export const category = new Schema<Category>({
+  establishmentId: {
     type: Schema.Types.ObjectId,
     ref: 'Establishment',
-    require: true,
+    required: true,
   },
   name: {
     type: String,
@@ -87,7 +85,25 @@ export const category = new Schema({
       'Wines',
     ],
   },
-  dishes: [dish],
+  dishes: {
+    type: [
+      new Schema({
+        name: { type: String, required: true },
+        price: { type: Number, required: true },
+        description: String,
+      }),
+    ],
+    validate: [
+      (
+        val: Array<{
+          name: string;
+          price: number;
+          description?: string;
+        }>
+      ) => val.length >= 3,
+      'Category must have at least 3 dishes',
+    ],
+  },
 });
 
 export const schemas = {

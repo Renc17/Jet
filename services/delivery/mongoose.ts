@@ -20,7 +20,6 @@ export class MongooseAdapter {
   }
 
   connect() {
-    console.log(this.connectionString);
     this.mongoose
       .connect(this.connectionString, {
         authSource: 'admin',
@@ -30,7 +29,7 @@ export class MongooseAdapter {
 
   registerSchemas() {
     Object.entries(models.schemas).forEach(([schemaName, schema]) => {
-      this.mongoose.model(schemaName, schema);
+      this.models[schemaName] = this.mongoose.model(schemaName, schema);
     });
   }
 

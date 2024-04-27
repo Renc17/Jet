@@ -6,6 +6,7 @@ import { Schema } from 'mongoose';
 // });
 
 export const establishment = new Schema({
+  operating: { type: Boolean, require: true, default: false },
   name: { type: String, required: true },
   type: {
     type: String,
@@ -33,6 +34,7 @@ export const establishment = new Schema({
     },
   ],
 });
+establishment.index({ name: 1 }, { unique: true });
 
 export const menu = new Schema({
   establishment_id: {

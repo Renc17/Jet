@@ -92,8 +92,8 @@ export const category = new Schema({
           price: number;
           description?: string;
         }>
-      ) => val.length >= 3,
-      'Category must have at least 3 dishes',
+      ) => val.length >= 2,
+      'Category must have at least 2 dishes',
     ],
   },
 });

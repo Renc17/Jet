@@ -1,13 +1,16 @@
 import express, { Express, Request, Response, Router } from 'express';
 import { MongooseAdapter } from './mongoose';
+import { AppRouter } from './routes';
 
 export class App {
   express: Express;
   private readonly mongooseAdapter = MongooseAdapter.getInstance();
+  router: Router;
 
   constructor() {
     this.express = express();
     this.express.use(express.json());
+    this.router = AppRouter.getInstance().router;
     this.registerRoutes();
   }
 
@@ -25,9 +28,6 @@ export class App {
   }
 
   private registerRoutes() {
-    this.express.use('/api', (req: Request, res: Response) => {
-      console.log('this is middleware gate');
-      res.send('Hello World');
-    });
+    this.express.use('/api', this.router);
   }
 }

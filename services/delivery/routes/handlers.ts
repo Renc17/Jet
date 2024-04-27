@@ -52,4 +52,77 @@ export class RouteHandlers {
         });
       });
   }
+
+  async createMenu(req: Request, res: Response) {
+    const { establishmentId } = req.params;
+
+    const data = req.body as {
+      tagline: string;
+      operatingStartDate?: Date;
+      operatingEndDate?: Date;
+      categories: string[];
+    };
+
+    const operatingEndDate = data.operatingEndDate
+      ? new Date(data.operatingEndDate)
+      : undefined;
+    const operatingStartDate = data.operatingStartDate
+      ? new Date(data.operatingStartDate)
+      : undefined;
+
+    const Establishment = MongooseAdapter.getInstance().models['Establishment'];
+    if (!Establishment)
+      return res.status(500).json({
+        message: 'Schema establishment not registered',
+      });
+
+    const establishment = await Establishment.findOne({
+      _id: establishmentId,
+    }).exec();
+    if (!establishment)
+      return res.status(404).json({
+        message: `Establishment ${establishmentId} not found`,
+      });
+
+    const Menu = MongooseAdapter.getInstance().models['Menu'];
+    if (!Menu)
+      return res.status(500).json({
+        message: 'Schema menu not registered',
+      });
+
+    const menus = await Menu.find({
+      establishmentId,
+      $and: [
+        { 'operatingPeriod.startDate': { $lte: operatingEndDate } },
+        { 'operatingPeriod.endDate': { $gte: operatingStartDate } },
+      ],
+    }).exec();
+
+    if (menus.length) {
+      return res.status(400).json({
+        message: 'There is an operating menu for this period',
+      });
+    }
+
+    Menu.create({
+      tagline: data.tagline,
+      operatingPeriod: {
+        startDate: operatingStartDate,
+        endDate: operatingEndDate,
+      },
+      categories: data.categories,
+      establishmentId,
+    })
+      .then(async result => {
+        await Establishment.findByIdAndUpdate(establishmentId, {
+          operating: true,
+        }).exec();
+        res.status(200).json(result);
+      })
+      .catch(err => {
+        res.status(409).json({
+          message: err,
+        });
+      });
+  }
 }

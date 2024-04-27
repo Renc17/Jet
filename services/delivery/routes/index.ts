@@ -3,6 +3,7 @@ import { RouteHandlers } from './handlers';
 import {
   validateCreateEstablishment,
   validateCreateMenuCategory,
+  validateCreateMenu,
 } from './validators';
 
 export class AppRouter {
@@ -32,6 +33,11 @@ export class AppRouter {
       '/:establishmentId/category',
       validateCreateMenuCategory,
       this.routeHandlers.createMenuCategory
+    );
+    this.router.post(
+      '/:establishmentId/menu',
+      validateCreateMenu,
+      this.routeHandlers.createMenu
     );
   }
 }

@@ -36,3 +36,10 @@ export const CategorySchema = z.object({
     })
   ),
 });
+
+export const MenuSchema = z.object({
+  tagline: z.string().optional(),
+  operatingStartDate: z.string().datetime().optional(),
+  operatingEndDate: z.string().datetime().optional(),
+  categories: z.array(z.string()),
+});

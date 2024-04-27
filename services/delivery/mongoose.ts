@@ -1,9 +1,11 @@
-import { Mongoose } from 'mongoose';
+import { Mongoose, Model } from 'mongoose';
+import * as models from './models';
 
 export class MongooseAdapter {
   private static instance: MongooseAdapter;
   private readonly mongoose: Mongoose;
   private connectionString: string;
+  models: { [name: string]: Model<any> } = {};
 
   constructor() {
     this.mongoose = new Mongoose();
@@ -17,8 +19,19 @@ export class MongooseAdapter {
     return MongooseAdapter.instance;
   }
 
-  async connect() {
-    this.mongoose.connect(this.connectionString);
+  connect() {
+    console.log(this.connectionString);
+    this.mongoose
+      .connect(this.connectionString, {
+        authSource: 'admin',
+      })
+      .catch(err => console.error('Error on conneting...', err));
+  }
+
+  registerSchemas() {
+    Object.entries(models.schemas).forEach(([schemaName, schema]) => {
+      this.mongoose.model(schemaName, schema);
+    });
   }
 
   async checkConnection() {
@@ -29,8 +42,8 @@ export class MongooseAdapter {
       this.mongoose.connection.on('error', err => {
         reject(`Mongoose connection error: ', ${err.message}`);
       });
-      this.mongoose.connection.on('disconnected', () => {
-        reject('Mongoose disconnected');
+      this.mongoose.connection.on('disconnected', error => {
+        reject(`Mongoose disconnected: ${error}`);
       });
     });
   }

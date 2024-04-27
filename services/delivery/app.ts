@@ -12,14 +12,11 @@ export class App {
   }
 
   async run() {
-    this.mongooseAdapter.connect().catch(error => {
-      console.error(error);
-      throw new Error(error);
-    });
+    this.mongooseAdapter.connect();
     this.mongooseAdapter.checkConnection().catch(error => {
-      console.error(error);
       throw new Error(error);
     });
+    await this.mongooseAdapter.registerSchemas();
     this.express.listen(process.env.PORT || 3000, () => {
       console.log(
         `[server]: Server is running at http://localhost:${process.env.PORT || 3000}`

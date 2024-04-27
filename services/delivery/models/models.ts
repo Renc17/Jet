@@ -31,40 +31,32 @@ export const establishment = new Schema({
 establishment.index({ name: 1 }, { unique: true });
 
 export const menu = new Schema({
-  establishment_id: {
+  establishmentId: {
     type: Schema.Types.ObjectId,
     ref: 'Establishment',
     required: true,
   },
   tagline: String,
-  status: {
-    type: String,
-    enum: ['draft', 'operating'],
-    default: 'draft',
+  operatingPeriod: {
+    startDate: Date,
+    endDate: Date,
   },
-  operatingStartDate: Date,
-  operatingEndDate: Date,
-  categories: [
-    {
-      type: Schema.Types.ObjectId,
-      ref: 'Category',
-      required: true,
-    },
-  ],
+  categories: {
+    type: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'Category',
+        required: true,
+      },
+    ],
+    validate: [
+      (val: Array<{ _id: string }>) => val.length >= 3,
+      'Menu must have at least 3 categories',
+    ],
+  },
 });
-menu.index({ operatingStartDate: 1, operatingEndDate: 1 }, { unique: true });
 
-interface Category {
-  establishmentId: Schema.Types.ObjectId;
-  name: string;
-  dishes: {
-    name: string;
-    price: number;
-    description?: string;
-  }[];
-}
-
-export const category = new Schema<Category>({
+export const category = new Schema({
   establishmentId: {
     type: Schema.Types.ObjectId,
     ref: 'Establishment',

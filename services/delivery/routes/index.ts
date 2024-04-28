@@ -4,6 +4,7 @@ import {
   validateCreateEstablishment,
   validateCreateMenuCategory,
   validateCreateMenu,
+  validateCreateOrder,
 } from './validators';
 
 export class AppRouter {
@@ -40,5 +41,14 @@ export class AppRouter {
       this.routeHandlers.createMenu
     );
     this.router.get('/:establishmentId/menu', this.routeHandlers.getMenu);
+    this.router.post(
+      '/:establishmentId/order',
+      validateCreateOrder,
+      this.routeHandlers.createOrder
+    );
+    this.router.get(
+      '/:establishmentId/order/:orderId',
+      this.routeHandlers.getOrder
+    );
   }
 }

@@ -43,3 +43,21 @@ export const MenuSchema = z.object({
   operatingEndDate: z.string().datetime().optional(),
   categories: z.array(z.string()),
 });
+
+export const OrderSchema = z.object({
+  dishes: z.array(
+    z.object({
+      dishId: z.string(),
+      quantity: z.number(),
+    })
+  ),
+  currency: z.string(), // TODO: enum
+  firstName: z.string().min(1),
+  lastName: z.string().min(1),
+  address: z.object({
+    street: z.string().min(1, 'Required'),
+    county: z.string().min(1, 'Required'),
+    postalCode: z.string().min(1, 'Required'),
+    floor: z.string().min(1, 'Required'),
+  }),
+});

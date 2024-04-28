@@ -56,6 +56,12 @@ export const menu = new Schema({
   },
 });
 
+export const dish = new Schema({
+  name: { type: String, required: true, unique: true },
+  price: { type: Number, required: true },
+  description: String,
+});
+
 export const category = new Schema({
   establishmentId: {
     type: Schema.Types.ObjectId,
@@ -76,15 +82,10 @@ export const category = new Schema({
       'Soft Drinks',
       'Wines',
     ],
+    unique: true,
   },
   dishes: {
-    type: [
-      new Schema({
-        name: { type: String, required: true },
-        price: { type: Number, required: true },
-        description: String,
-      }),
-    ],
+    type: [{ type: Schema.Types.ObjectId, ref: 'Dish', required: true }],
     validate: [
       (
         val: Array<{
@@ -98,8 +99,33 @@ export const category = new Schema({
   },
 });
 
+export const order = new Schema({
+  establishmentId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Establishment',
+    required: true,
+  },
+  dishes: [
+    {
+      dishId: { type: Schema.Types.ObjectId, ref: 'Dish', required: true },
+      quantity: { type: Number, required: true },
+    },
+  ],
+  price: { type: Number, required: true },
+  firstName: { type: String, required: true },
+  lastName: { type: String, required: true },
+  address: {
+    street: { type: String, required: true },
+    county: { type: String, required: true },
+    postalCode: { type: String, required: true },
+    floor: { type: String, required: true },
+  },
+});
+
 export const schemas = {
   Establishment: establishment,
+  Dish: dish,
   Category: category,
   Menu: menu,
+  Order: order,
 };

@@ -1,15 +1,15 @@
 FROM node:iron-alpine
 
-RUN addgroup -S nonroot \
-    && adduser -S nonroot -G nonroot
+COPY . ./app
+WORKDIR /app
+RUN yarn install --pure-lockfile && yarn build 
+
+RUN addgroup -S nonroot && adduser -S nonroot -G nonroot
+RUN chown -R nonroot:nonroot /app
 USER nonroot
 
-WORKDIR /app
-COPY --chown=nonroot:nonroot . .
-WORKDIR /app
-RUN yarn install --pure-lockfile --non-interactive && yarn build
-
 ENV NODE_ENV="production"
+ENV MONGO_CONNECTION_STRING=
 
 EXPOSE 3030
 

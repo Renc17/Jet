@@ -20,10 +20,8 @@ export class App {
       throw new Error(error);
     });
     await this.mongooseAdapter.registerSchemas();
-    this.express.listen(process.env.PORT || 3000, () => {
-      console.log(
-        `[server]: Server is running at http://localhost:${process.env.PORT || 3000}`
-      );
+    this.express.listen(3000, () => {
+      console.log(`[server]: Server is running at http://localhost:3000`);
     });
   }
 

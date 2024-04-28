@@ -1,57 +1,33 @@
 version: '3.9'
-networks:
-  default:
-    name: 'jet'
 services:
   service:
     container_name: 'delivery'
-    build: './services/delivery'
+    build:
+      context: './services/delivery'
+      dockerfile: 'Dockerfile'
     restart: unless-stopped
-    # depends_on:
-    #   - redis
+    depends_on:
+      - mongodb
     ports:
-      - '${API_HTTP_PORT:-3030}:3030'
+      - 3000:3000
     environment:
-      # REDIS_HOST: 'jet-redis'
-      # REDIS_PORT: '${REDIS_PORT:-6379}'
-      API_HTTP_PORT: '${API_HTTP_PORT:-3030}'
+      MONGO_CONNECTION_STRING: '${MONGO_CONNECTION_STRING:-mongodb://jet:pass@jet-mongo:27017/jet_dev}'
+    networks:
+      - jet
 
   operator-ui:
     container_name: 'operator-ui'
-    build: './apps/operator'
+    build:
+      context: './apps/operator'
+      dockerfile: 'Dockerfile'
     restart: unless-stopped
-    depends_on:
-      - service
     ports:
-      - '${OPERATOR_UI_PORT:-3000}:3000'
+      - 3030:3000
     environment:
-      NODE_OPTIONS: '--max-old-space-size=2048'
+      # NODE_OPTIONS: '--max-old-space-size=2048'
       DATA_ROOT: '/public'
-      # CONDUIT_SERVER: 'delivery:${CORE_GRPC_PORT:-55152}'
-
-  shop-ui:
-    container_name: 'shop-ui'
-    build: './apps/shop'
-    restart: unless-stopped
-    depends_on:
-      - service
-    ports:
-      - '${SHOP_UI_PORT:-3001}:3000'
-    environment:
-      NODE_OPTIONS: '--max-old-space-size=2048'
-      DATA_ROOT: '/public'
-      # CONDUIT_SERVER: 'delivery:${CORE_GRPC_PORT:-55152}'
 
   # Dependencies
-  redis:
-    container_name: 'jet-redis'
-    image: 'redis:latest'
-    restart: unless-stopped
-    ports:
-      - '${REDIS_PORT:-6379}:6379'
-    environment:
-      REDIS_PASSWORD: '${REDIS_PASS:-pass}'
-
   mongodb:
     container_name: 'jet-mongo'
     image: 'mongo:latest'
@@ -59,14 +35,19 @@ services:
     ports:
       - '${DB_PORT:-27017}:27017'
     environment:
-      MONGO_INITDB_DATABASE: 'delivery'
+      MONGO_INITDB_DATABASE: '${DB_NAME:-jet_dev}'
       MONGO_INITDB_ROOT_USERNAME: '${DB_USER:-jet}'
       MONGO_INITDB_ROOT_PASSWORD: '${DB_PASS:-pass}'
     volumes:
       - mongo:/data/db
-# DB_CONN_URI: '${DB_CONN_URI:-mongodb://conduit:pass@conduit-mongo:27017/conduit?authSource=admin}'
+    networks:
+      - jet
+
+# Create networks
+networks:
+  jet:
+    driver: bridge
 
 # Persistent Volumes
 volumes:
   mongo:
-    external: false

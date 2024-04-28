@@ -78,6 +78,7 @@ export class RouteHandlers {
         });
       }
     }
+
     const Establishment = MongooseAdapter.getInstance().models['Establishment'];
     if (!Establishment)
       return res.status(500).json({
@@ -138,5 +139,56 @@ export class RouteHandlers {
           message: err,
         });
       });
+  }
+
+  async getMenu(req: Request, res: Response) {
+    const { establishmentId } = req.params;
+    const Establishment = MongooseAdapter.getInstance().models['Establishment'];
+    if (!Establishment)
+      return res.status(500).json({
+        message: 'Schema establishment not registered',
+      });
+
+    const establishment = await Establishment.findOne({
+      _id: establishmentId,
+    }).exec();
+    if (!establishment)
+      return res.status(404).json({
+        message: `Establishment ${establishmentId} not found`,
+      });
+
+    const Menu = MongooseAdapter.getInstance().models['Menu'];
+    if (!Menu)
+      return res.status(500).json({
+        message: 'Schema menu not registered',
+      });
+
+    const menu = await Menu.find({
+      establishmentId,
+      $or: [
+        {
+          operatingPeriod: { $ne: null },
+          'operatingPeriod.startDate': {
+            $lte: new Date(),
+          },
+          'operatingPeriod.endDate': {
+            $gte: new Date(),
+          },
+        },
+        {
+          operatingPeriod: { $eq: null },
+        },
+      ],
+    })
+      .populate({ path: 'categories', select: 'name dishes' })
+      .exec();
+
+    if (!menu.length) {
+      return res.status(400).json({
+        message: 'There is no operating menu for this period',
+      });
+    }
+
+    res.status(200).json(menu);
   }
 }

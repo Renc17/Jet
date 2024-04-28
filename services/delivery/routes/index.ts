@@ -39,5 +39,6 @@ export class AppRouter {
       validateCreateMenu,
       this.routeHandlers.createMenu
     );
+    this.router.get('/:establishmentId/menu', this.routeHandlers.getMenu);
   }
 }

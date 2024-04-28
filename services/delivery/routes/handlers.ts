@@ -70,6 +70,14 @@ export class RouteHandlers {
       ? new Date(data.operatingStartDate)
       : undefined;
 
+    if (operatingStartDate && operatingEndDate) {
+      const diff = operatingEndDate.getTime() - operatingStartDate.getTime();
+      if (diff < 0) {
+        return res.status(400).json({
+          message: 'Invalid Time Period. Start date should be before end date',
+        });
+      }
+    }
     const Establishment = MongooseAdapter.getInstance().models['Establishment'];
     if (!Establishment)
       return res.status(500).json({
@@ -92,9 +100,15 @@ export class RouteHandlers {
 
     const menus = await Menu.find({
       establishmentId,
-      $and: [
-        { 'operatingPeriod.startDate': { $lte: operatingEndDate } },
-        { 'operatingPeriod.endDate': { $gte: operatingStartDate } },
+      $or: [
+        {
+          operatingPeriod: { $ne: null },
+          'operatingPeriod.startDate': { $lte: operatingEndDate },
+          'operatingPeriod.endDate': { $gte: operatingStartDate },
+        },
+        {
+          operatingPeriod: { $eq: null },
+        },
       ],
     }).exec();
 

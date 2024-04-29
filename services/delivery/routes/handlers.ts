@@ -237,12 +237,18 @@ export class RouteHandlers {
 
   async createOrder(req: Request, res: Response) {
     const { establishmentId } = req.params;
+    enum SupprtedCurrency {
+      'GBP' = 'GBP',
+      'CAD' = 'CAD',
+      'USD' = 'USD',
+      'EUR' = 'EUR',
+    }
     type BodyParams = {
       dishes: {
         dishId: string;
         quantity: number;
       }[];
-      currency: string;
+      currency: SupprtedCurrency;
       firstName: string;
       lastName: string;
       address: {

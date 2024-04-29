@@ -1,0 +1,53 @@
+version: '3.9'
+services:
+  service:
+    container_name: 'delivery'
+    build:
+      context: './services/delivery'
+      dockerfile: 'Dockerfile'
+    restart: unless-stopped
+    depends_on:
+      - mongodb
+    ports:
+      - 3000:3000
+    environment:
+      MONGO_CONNECTION_STRING: '${MONGO_CONNECTION_STRING:-mongodb://jet:pass@jet-mongo:27017/jet_dev}'
+    networks:
+      - jet
+
+  operator-ui:
+    container_name: 'operator-ui'
+    build:
+      context: './apps/operator'
+      dockerfile: 'Dockerfile'
+    restart: unless-stopped
+    ports:
+      - 3030:3000
+    environment:
+      # NODE_OPTIONS: '--max-old-space-size=2048'
+      DATA_ROOT: '/public'
+
+  # Dependencies
+  mongodb:
+    container_name: 'jet-mongo'
+    image: 'mongo:latest'
+    restart: unless-stopped
+    ports:
+      - '${DB_PORT:-27017}:27017'
+    environment:
+      MONGO_INITDB_DATABASE: '${DB_NAME:-jet_dev}'
+      MONGO_INITDB_ROOT_USERNAME: '${DB_USER:-jet}'
+      MONGO_INITDB_ROOT_PASSWORD: '${DB_PASS:-pass}'
+    volumes:
+      - mongo:/data/db
+    networks:
+      - jet
+
+# Create networks
+networks:
+  jet:
+    driver: bridge
+
+# Persistent Volumes
+volumes:
+  mongo:

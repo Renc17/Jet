@@ -320,14 +320,19 @@ export class RouteHandlers {
       price,
       establishmentId,
     })
-      .then(result => {
+      .then(async result => {
+        const order = await Order.findOne({ _id: result._id })
+          .populate({
+            path: 'dishes',
+            populate: {
+              path: 'dishId',
+              model: 'Dish',
+            },
+          })
+          .exec();
+
         if (socket) {
-          socket.io.emit('order', {
-            address: result.address,
-            fistName: result.firstName,
-            lastName: result.lastName,
-            _id: result._id,
-          });
+          socket.io.emit('order', order);
         }
         return res.status(200).json(result);
       })

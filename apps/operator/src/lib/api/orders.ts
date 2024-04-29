@@ -23,7 +23,7 @@ type Order = {
 export const getOrders = async (establishmentId: string, orderId: string) => {
   type Response = Order[];
   return await axiosInstance
-    .get<Response>(`/${establishmentId}/order/${orderId}`)
+    .get<Response>(`/api/${establishmentId}/order/${orderId}`)
     .then(res => res.data)
     .catch(err => {
       throw new Error(err.response.data.message);

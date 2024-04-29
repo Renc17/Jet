@@ -4,6 +4,7 @@ import { SocketIO } from '../io';
 import * as z from 'zod';
 import { CategorySchema } from './zod';
 import { Schema } from 'mongoose';
+import { CurrencyCoverter } from '../exchange';
 
 export class RouteHandlers {
   async createEstablishment(req: Request, res: Response) {
@@ -227,6 +228,8 @@ export class RouteHandlers {
       })
       .exec();
 
+    // TODO: if currency exchange currency is available, convert menu prices to user defined currency
+
     if (!menu.length) {
       return res.status(400).json({
         message: 'There is no operating menu for this period',
@@ -261,6 +264,14 @@ export class RouteHandlers {
     };
     const { dishes, firstName, lastName, address, currency } =
       req.body as BodyParams;
+
+    if (currency !== SupprtedCurrency.EUR) {
+      if (!CurrencyCoverter.getInstance().isAvailable()) {
+        return res.status(400).json({
+          message: `${currency} is not supported for the time being`,
+        });
+      }
+    }
 
     const socket = SocketIO.getInstance();
     if (!socket) {

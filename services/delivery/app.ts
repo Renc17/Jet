@@ -1,5 +1,6 @@
 import express, { Express, Router } from 'express';
 import { MongooseAdapter } from './mongoose';
+import { CurrencyCoverter } from './exchange';
 import { AppRouter } from './routes';
 import http, { Server } from 'http';
 import { SocketIO } from './io';
@@ -15,6 +16,7 @@ export class App {
     this.express = express();
     this.server = http.createServer(this.express);
     SocketIO.getInstance(this.server).startConnection();
+    CurrencyCoverter.getInstance();
     this.express.use(express.json());
     this.express.use(
       cors({

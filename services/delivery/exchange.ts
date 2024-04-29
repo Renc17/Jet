@@ -1,14 +1,23 @@
 import axios from 'axios';
 
 export class CurrencyCoverter {
+  private static instance: CurrencyCoverter;
   private isAvailableStatus: boolean;
 
   constructor() {
-    if (process.env.API_KEY) {
+    if (!process.env.API_KEY) {
+      console.log('Currency exchange is not available');
       this.isAvailableStatus = false;
     } else {
+      console.log('Currency exchange is available');
       this.isAvailableStatus = true;
     }
+  }
+
+  static getInstance() {
+    if (CurrencyCoverter.instance) return CurrencyCoverter.instance;
+    CurrencyCoverter.instance = new CurrencyCoverter();
+    return CurrencyCoverter.instance;
   }
 
   isAvailable() {

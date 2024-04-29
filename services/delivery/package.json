@@ -2,6 +2,7 @@
   "name": "@jet/delivery",
   "version": "1.0.0",
   "main": "dist/index.js",
+  "license": "MIT",
   "scripts": {
     "build": "rimraf dist && tsc",
     "docker:build": "docker build . -t jet-service",

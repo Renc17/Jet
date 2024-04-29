@@ -35,9 +35,7 @@ export class App {
     });
     await this.mongooseAdapter.registerSchemas();
     this.server.listen(process.env.PORT || 3000, () => {
-      console.log(
-        `[server]: Server is running at http://localhost:${process.env.PORT || 3000}`
-      );
+      console.log(`[server]: Server is running at http://localhost:3000`);
     });
   }
 

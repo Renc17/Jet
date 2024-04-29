@@ -1,15 +1,29 @@
-import express, { Express, Request, Response, Router } from 'express';
+import express, { Express, Router } from 'express';
 import { MongooseAdapter } from './mongoose';
+import { CurrencyCoverter } from './exchange';
 import { AppRouter } from './routes';
+import http, { Server } from 'http';
+import { SocketIO } from './io';
+import cors from 'cors';
 
 export class App {
   express: Express;
   private readonly mongooseAdapter = MongooseAdapter.getInstance();
   router: Router;
+  server: Server;
 
   constructor() {
     this.express = express();
+    this.server = http.createServer(this.express);
+    SocketIO.getInstance(this.server).startConnection();
+    CurrencyCoverter.getInstance();
     this.express.use(express.json());
+    this.express.use(
+      cors({
+        origin: 'http://localhost:4000',
+        methods: ['GET', 'POST'],
+      })
+    );
     this.router = AppRouter.getInstance().router;
     this.registerRoutes();
   }
@@ -20,7 +34,7 @@ export class App {
       throw new Error(error);
     });
     await this.mongooseAdapter.registerSchemas();
-    this.express.listen(3000, () => {
+    this.server.listen(process.env.PORT || 3000, () => {
       console.log(`[server]: Server is running at http://localhost:3000`);
     });
   }

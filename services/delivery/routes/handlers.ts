@@ -1,8 +1,10 @@
 import { Request, Response } from 'express';
 import { MongooseAdapter } from '../mongoose';
+import { SocketIO } from '../io';
 import * as z from 'zod';
 import { CategorySchema } from './zod';
 import { Schema } from 'mongoose';
+import { CurrencyCoverter } from '../exchange';
 
 export class RouteHandlers {
   async createEstablishment(req: Request, res: Response) {
@@ -226,6 +228,8 @@ export class RouteHandlers {
       })
       .exec();
 
+    // TODO: if currency exchange currency is available, convert menu prices to user defined currency
+
     if (!menu.length) {
       return res.status(400).json({
         message: 'There is no operating menu for this period',
@@ -237,12 +241,18 @@ export class RouteHandlers {
 
   async createOrder(req: Request, res: Response) {
     const { establishmentId } = req.params;
+    enum SupprtedCurrency {
+      'GBP' = 'GBP',
+      'CAD' = 'CAD',
+      'USD' = 'USD',
+      'EUR' = 'EUR',
+    }
     type BodyParams = {
       dishes: {
         dishId: string;
         quantity: number;
       }[];
-      currency: string;
+      currency: SupprtedCurrency;
       firstName: string;
       lastName: string;
       address: {
@@ -254,6 +264,19 @@ export class RouteHandlers {
     };
     const { dishes, firstName, lastName, address, currency } =
       req.body as BodyParams;
+
+    if (currency !== SupprtedCurrency.EUR) {
+      if (!CurrencyCoverter.getInstance().isAvailable()) {
+        return res.status(400).json({
+          message: `${currency} is not supported for the time being`,
+        });
+      }
+    }
+
+    const socket = SocketIO.getInstance();
+    if (!socket) {
+      console.error('Web sockets are not available');
+    }
 
     const Establishment = MongooseAdapter.getInstance().models['Establishment'];
     if (!Establishment)
@@ -314,7 +337,22 @@ export class RouteHandlers {
       price,
       establishmentId,
     })
-      .then(result => res.status(200).json(result))
+      .then(async result => {
+        const order = await Order.findOne({ _id: result._id })
+          .populate({
+            path: 'dishes',
+            populate: {
+              path: 'dishId',
+              model: 'Dish',
+            },
+          })
+          .exec();
+
+        if (socket) {
+          socket.io.emit('order', order);
+        }
+        return res.status(200).json(result);
+      })
       .catch(err => {
         res.status(409).json({
           message: err,
@@ -345,7 +383,13 @@ export class RouteHandlers {
       });
 
     Order.find({ _id: orderId })
-      .populate('dishes')
+      .populate({
+        path: 'dishes',
+        populate: {
+          path: 'dishId',
+          model: 'Dish',
+        },
+      })
       .exec()
       .then(result => res.status(200).json(result))
       .catch(err => {

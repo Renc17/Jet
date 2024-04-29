@@ -9,7 +9,9 @@ export class MongooseAdapter {
 
   constructor() {
     this.mongoose = new Mongoose();
-    this.connectionString = process.env.MONGO_CONNECTION_STRING ?? '';
+    this.connectionString =
+      process.env.MONGO_CONNECTION_STRING ??
+      'mongodb://jet:pass@127.0.0.1:27017/jet_dev';
     console.log('MongooseAdapter created');
   }
 

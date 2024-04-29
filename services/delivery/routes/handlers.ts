@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { MongooseAdapter } from '../mongoose';
+import { SocketIO } from '../io';
 import * as z from 'zod';
 import { CategorySchema } from './zod';
 import { Schema } from 'mongoose';
@@ -261,6 +262,11 @@ export class RouteHandlers {
     const { dishes, firstName, lastName, address, currency } =
       req.body as BodyParams;
 
+    const socket = SocketIO.getInstance();
+    if (!socket) {
+      console.error('Web sockets are not available');
+    }
+
     const Establishment = MongooseAdapter.getInstance().models['Establishment'];
     if (!Establishment)
       return res.status(500).json({
@@ -320,7 +326,22 @@ export class RouteHandlers {
       price,
       establishmentId,
     })
-      .then(result => res.status(200).json(result))
+      .then(async result => {
+        const order = await Order.findOne({ _id: result._id })
+          .populate({
+            path: 'dishes',
+            populate: {
+              path: 'dishId',
+              model: 'Dish',
+            },
+          })
+          .exec();
+
+        if (socket) {
+          socket.io.emit('order', order);
+        }
+        return res.status(200).json(result);
+      })
       .catch(err => {
         res.status(409).json({
           message: err,
@@ -351,7 +372,13 @@ export class RouteHandlers {
       });
 
     Order.find({ _id: orderId })
-      .populate('dishes')
+      .populate({
+        path: 'dishes',
+        populate: {
+          path: 'dishId',
+          model: 'Dish',
+        },
+      })
       .exec()
       .then(result => res.status(200).json(result))
       .catch(err => {

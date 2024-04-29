@@ -51,7 +51,7 @@ export const OrderSchema = z.object({
       quantity: z.number(),
     })
   ),
-  currency: z.string(), // TODO: enum
+  currency: z.enum(['GBP', 'CAD', 'USD', 'EUR']),
   firstName: z.string().min(1),
   lastName: z.string().min(1),
   address: z.object({
